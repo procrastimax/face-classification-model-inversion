@@ -7,11 +7,12 @@ image_width = 92
 
 # test out the batch size here a bit
 batch_size = 32
-data_dir = "face-images"
+#data_dir = "face-images/"
+data_dir = "face-images-all/"
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
     directory=data_dir,
-    validation_split=0.34,
+    validation_split=0.2,
     subset="training",
     seed=1337,
     image_size=(image_height, image_width),
@@ -21,7 +22,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
 
 val_ds = tf.keras.utils.image_dataset_from_directory(
     directory=data_dir,
-    validation_split=0.34,
+    validation_split=0.2,
     subset="validation",
     seed=1337,
     image_size=(image_height, image_width),
@@ -29,7 +30,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
     color_mode="grayscale"
 )
 
-#data_augmentation = tf.keras.Sequential(
+# data_augmentation = tf.keras.Sequential(
 #   [
 #       tf.keras.layers.RandomFlip("horizontal",
 #                                  input_shape=(image_height,
@@ -38,12 +39,12 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 #       tf.keras.layers.RandomRotation(0.1),
 #       tf.keras.layers.RandomZoom(0.1),
 #   ]
-#)
+# )
 
 
 def make_model(image_size, num_classes: int):
     model = tf.keras.Sequential([
-        #data_augmentation,
+        # data_augmentation,
         tf.keras.layers.Rescaling(1. / 255, input_shape=(image_height, image_width, 1)),
 
         tf.keras.layers.Conv2D(filters=16, kernel_size=3, padding="same", activation="relu", input_shape=image_size),

@@ -24,11 +24,10 @@ for dir in os.listdir(data_dir):
             img_array = tf.expand_dims(img_array, 0)
             img_dict[img_path] = img_array
 
-
 print("Loading model")
 loaded_model = tf.keras.models.load_model("model")
 
 for img_path in img_dict:
-    predictions = loaded_model.predict_on_batch(img_dict[img_path])
+    predictions = loaded_model(img_dict[img_path])
     score = tf.nn.softmax(predictions[0])
     print(f"Image {img_path} is probably class: {class_labels[np.argmax(score)]} with probability {np.max(score) * 100}")
