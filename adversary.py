@@ -1,6 +1,8 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
+
 
 # image sizes are 92x112
 image_height = 112
@@ -13,44 +15,51 @@ loaded_model: tf.keras.Model = tf.keras.models.load_model("model")
 print("Model loaded\n")
 
 
-def custom_cost_function(y_true, y_pred, loaded_model):
-    predictions = loaded_model.predict_on_batch(y_pred)
-    score = tf.nn.softmax(predictions[0])
-    probability = 1 - score.numpy()[0]  # we want to maximize the score for the first class
-    return probability
+def show_image(img_array, title: str):
+    img = tf.math.multiply(img_array, 255)
+    img = img.numpy().astype("uint8").squeeze()
+
+   # plt.imshow(img, cmap='gray')
+   # plt.axis("off")
+   # plt.title = title
+   # plt.show()
+
+    print(f"Saving image {title}")
+    pil_image = Image.fromarray(img)
+    pil_image.save(f"img_{title}.png")
 
 
-adv_image = np.random.rand(image_height, image_width, 1)
-adv_image = tf.cast(adv_image, tf.float32)
-adv_image = adv_image[None, :, :, :]
+#adv_image = np.random.rand(image_height, image_width)
+adv_image = np.zeros((image_height, image_width))
+adv_image = tf.expand_dims(adv_image, axis=0)
 adv_image = tf.Variable(adv_image)
 
-adam_optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+#optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+optimizer = tf.keras.optimizers.SGD(learning_rate=0.01)
 
+
+# create array for classes, but only set first class to 1 - since we only want to optimize for the first class
 class_labels = np.zeros(shape=(1, 40))
 class_labels[0][0] = 1
 
+curr_pred = 0
+
 
 def custom_loss():
-    for var in adam_optimizer.variables():
+    for var in optimizer.variables():
         var.assign(tf.zeros_like(var))
+    global curr_pred
     prediction = loaded_model(adv_image)
-    softmax = tf.nn.softmax(prediction)
-    loss = - tf.math.multiply(tf.math.log(softmax), class_labels)
+    curr_pred = tf.math.reduce_max(tf.math.multiply(prediction, class_labels))
+    loss = 1 - curr_pred
     return loss
 
 
-epochs = 2000
+epochs = 5000
 for i in range(epochs):
-    print(f"Optimizing in epoch {i+1}/{epochs}")
-    adam_optimizer.minimize(custom_loss, [adv_image])
+    optimizer.minimize(custom_loss, [adv_image])
+    print(f"Optimizing in epoch {i+1}/{epochs} - Prediction: {curr_pred:.2f}")
+    if i % 500:
+        show_image(adv_image, "adversary_img")
 
-
-adv_image = tf.math.multiply(adv_image, 255)
-np_image = adv_image.numpy().astype("uint8").squeeze()
-
-plt.imshow(np_image, cmap='gray')
-plt.title("Inverted image")
-plt.axis("off")
-
-plt.show()
+show_image(adv_image, "adversary_img")

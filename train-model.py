@@ -30,44 +30,25 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
     color_mode="grayscale"
 )
 
-# data_augmentation = tf.keras.Sequential(
-#   [
-#       tf.keras.layers.RandomFlip("horizontal",
-#                                  input_shape=(image_height,
-#                                               image_width,
-#                                               1)),
-#       tf.keras.layers.RandomRotation(0.1),
-#       tf.keras.layers.RandomZoom(0.1),
-#   ]
-# )
+normalization_layer = tf.keras.layers.Rescaling(1. / 255)
+train_ds = train_ds.map(lambda x, y: (normalization_layer(x), y))
+val_ds = val_ds.map(lambda x, y: (normalization_layer(x), y))
 
 
-def make_model(image_size, num_classes: int):
+def make_model(num_classes: int):
     model = tf.keras.Sequential([
-        # data_augmentation,
-        tf.keras.layers.Rescaling(1. / 255, input_shape=(image_height, image_width, 1)),
-
-        tf.keras.layers.Conv2D(filters=16, kernel_size=3, padding="same", activation="relu", input_shape=image_size),
-        tf.keras.layers.MaxPool2D(),
-
-        tf.keras.layers.Conv2D(filters=32, kernel_size=3, padding="same", activation="relu"),
-        tf.keras.layers.MaxPool2D(),
-
-        tf.keras.layers.Conv2D(filters=64, kernel_size=3, padding="same", activation="relu"),
-        tf.keras.layers.MaxPool2D(),
-
+        tf.keras.layers.InputLayer(input_shape=(image_height, image_width)),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(units=128, activation="relu"),
-        tf.keras.layers.Dense(num_classes)
+        tf.keras.layers.Dense(num_classes, activation="softmax")
     ])
     return model
 
 
-model = make_model((image_height, image_width, 1), 40)
+model = make_model(num_classes=40)
 
 model.compile(optimizer='adam',
-              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-              metrics=['accuracy'])
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+              metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
 
 model.summary()
 
@@ -78,8 +59,8 @@ history = model.fit(
     epochs=epochs
 )
 
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
+acc = history.history['sparse_categorical_accuracy']
+val_acc = history.history['val_sparse_categorical_accuracy']
 
 loss = history.history['loss']
 val_loss = history.history['val_loss']

@@ -14,20 +14,38 @@ print("Loading test images")
 # a dict containing the class name and the keras image
 img_dict: dict = {}
 
-for dir in os.listdir(data_dir):
-    dir_path = os.path.join(data_dir, dir)
-    if os.path.isdir(dir_path):
-        for img in os.listdir(dir_path):
-            img_path = os.path.join(dir_path, img)
-            keras_img = tf.keras.utils.load_img(img_path, target_size=(image_height, image_width), color_mode="grayscale")
-            img_array = tf.keras.utils.img_to_array(keras_img)
-            img_array = tf.expand_dims(img_array, 0)
-            img_dict[img_path] = img_array
+#for dir in os.listdir(data_dir):
+#    dir_path = os.path.join(data_dir, dir)
+#    if os.path.isdir(dir_path):
+#        for img in os.listdir(dir_path):
+#            img_path = os.path.join(dir_path, img)
+#            keras_img = tf.keras.utils.load_img(img_path, target_size=(image_height, image_width), color_mode="grayscale")
+#            img_array = tf.keras.utils.img_to_array(keras_img)
+#            img_array = img_array / 255.0
+#            img_array = tf.expand_dims(img_array, 0)
+#            img_dict[dir] = img_array
+
+keras_img = tf.keras.utils.load_img("./test-images/s1/1.png", target_size=(image_height, image_width), color_mode="grayscale")
+img_array = tf.keras.utils.img_to_array(keras_img)
+img_array = img_array / 255.0
+img_array = tf.expand_dims(img_array, 0)
+img_dict["s1"] = img_array
+
+keras_img = tf.keras.utils.load_img("./img_random_start_img.png", target_size=(image_height, image_width), color_mode="grayscale")
+img_array = tf.keras.utils.img_to_array(keras_img)
+img_array = img_array / 255.0
+img_array = tf.expand_dims(img_array, 0)
+img_dict["random"] = img_array
+
+keras_img = tf.keras.utils.load_img("./img_adversary_img.png", target_size=(image_height, image_width), color_mode="grayscale")
+img_array = tf.keras.utils.img_to_array(keras_img)
+img_array = img_array / 255.0
+img_array = tf.expand_dims(img_array, 0)
+img_dict["adversary"] = img_array
 
 print("Loading model")
 loaded_model = tf.keras.models.load_model("model")
 
 for img_path in img_dict:
     predictions = loaded_model(img_dict[img_path])
-    score = tf.nn.softmax(predictions[0])
-    print(f"Image {img_path} is probably class: {class_labels[np.argmax(score)]} with probability {np.max(score) * 100}")
+    print(f"Image: {img_path}, predicted: {class_labels[np.argmax(predictions)]}, probability: {np.max(predictions) * 100:.2f}%")
