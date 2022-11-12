@@ -59,7 +59,7 @@ These are some results of different runs with different learning rates, batch si
 ![Inversed Image 3](result-images/feh_013660_000001_img_adversary_img.png "Inversed Image 3")
 
 The model is a simple one-layer neural network. For this attack it seems that the architecture of the network has a huge influence on the inversion. I found that this attack is not feasible with CNNs and the current approach on inversion.
-Here example of how a CNN-inversed image looks like:
+Here is an example of how a CNN-inversed image looks like:
 
 <img src="result-images/CNN_MI_FACE.png" alt="Inversed Image 4 (CNN)" width="200"/>
 
